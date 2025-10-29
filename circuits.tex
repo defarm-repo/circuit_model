@@ -18,12 +18,12 @@
 \maketitle
 
 \begin{abstract}
-This paper introduces the formal structure of circuits as a general model for distributed coordination and state evolution. A circuit represents a composition of items and events, where items describe discrete stateful entities, and events represent atomic transitions that affect those states. The model focuses on mathematical consistency, verifiable causality, and compositionality without reliance on global consensus. This specification defines the primitives, transition functions, synchronization semantics, and privacy-preserving mechanisms that govern the operation of circuits as distributed state machines.
+This paper introduces the formal structure of circuits as a general model for distributed coordination and state evolution. A circuit represents a composition of items and events, where items describe discrete stateful entities, and events represent atomic transitions that affect those states. The model focuses on mathematical consistency, verifiable causality, and compositionality without reliance on global consensus. This specification defines the primitives, transition functions, synchronization semantics, a pluggable adapter architecture for physical storage, and privacy-preserving mechanisms that govern the operation of circuits as distributed state machines.
 \end{abstract}
 
 \section{Introduction}
 
-Distributed systems often require coordination between autonomous agents operating over shared or partially shared data. The notion of a circuit emerges as a minimal abstraction that allows multiple actors to publish, modify, and synchronize state changes in a verifiable manner. Rather than a single ledger or authority, circuits describe relational domains where items evolve independently but can reference and influence each other through structured events. This model provides a foundation for composable and causally consistent data coordination.
+Distributed systems often require coordination between autonomous agents operating over shared or partially shared data. The notion of a circuit emerges as a minimal abstraction that allows multiple actors to publish, modify, and synchronize state changes in a verifiable manner. Rather than a single ledger or authority, circuits describe relational domains where items evolve independently but can reference and influence each other through structured events. This model provides a storage-agnostic foundation for composable and causally consistent data coordination, which can be implemented on a variety of physical backends through a pluggable adapter architecture.
 
 \section{Formal Definitions}
 
@@ -102,6 +102,38 @@ H_{C,t} = H(\text{sort}(\Sigma_{I_0, t}, \Sigma_{I_1, t}, \dots, \Sigma_{I_n, t}
 \end{equation}
 An event targeting any item $I_k$ will alter its state hash $\Sigma_{I_k}$, which in turn changes the overall circuit state hash $H_C$. This provides a simple and powerful mechanism to confirm if two distributed copies of a circuit are in the same state.
 
+\section{Storage and Network Adapters}
+The Circuit Model itself is a purely logical specification, defining the rules of state evolution without mandating a physical storage medium. The link between the abstract model and a concrete implementation is provided by \textbf{Adapters}. An adapter is a pluggable component chosen by the circuit owner that dictates where and how event data is published, stored, and retrieved.
+
+\subsection{Separation of Concerns}
+This architecture creates a clean separation of concerns. The circuit is responsible for:
+\begin{itemize}
+    \item Validating event structure and rules ($\mathcal{R}$).
+    \item Executing the state transition function ($\Psi$).
+    \item Creating the cryptographic hashes ($h_i, \Sigma_t, H_C$).
+\end{itemize}
+The adapter is responsible for:
+\begin{itemize}
+    \item Persisting a valid event to a specific storage backend.
+    \item Retrieving event histories or item states from that backend.
+\end{itemize}
+
+\subsection{Adapter Interface}
+Conceptually, any adapter implements a simple interface, primarily:
+\begin{itemize}
+    \item \texttt{publish(event)}: Takes a locally-validated event and broadcasts it to the network or writes it to the storage layer. It returns a storage-specific identifier (e.g., a transaction hash, an IPFS CID).
+    \item \texttt{resolve(item\_id)}: Fetches the event history for a given item from the storage layer, allowing a node to reconstruct its current state.
+\end{itemize}
+
+\subsection{Example Adapters}
+The flexibility of this model is demonstrated by the variety of possible adapters:
+\begin{itemize}
+    \item \textbf{Blockchain Adapter:} An event can be embedded into a transaction on a public blockchain (e.g., Ethereum). The blockchain's global consensus provides a definitive, ordered log, making fork resolution trivial. This adapter is ideal for high-security applications but may incur higher costs and latency.
+    \item \textbf{IPFS Adapter:} Events can be stored as immutable objects in the InterPlanetary File System (IPFS). The hash-chain linkage of events is preserved by embedding the parent's IPFS Content Identifier (CID) in the child object. This approach is highly decentralized and cost-effective for data availability.
+    \item \textbf{Federated Database Adapter:} For private or consortium-based circuits, an adapter could simply write events to a replicated, high-availability database (e.g., PostgreSQL with streaming replication) managed by a set of trusted parties.
+\end{itemize}
+The circuit owner's choice of adapter determines the trade-offs between decentralization, security, performance, and cost.
+
 \section{Properties and Integrity}
 
 The circuit model ensures the following properties:
@@ -111,6 +143,7 @@ The circuit model ensures the following properties:
     \item \textbf{Local validation} — rules $\mathcal{R}$ define event acceptance at circuit scope, allowing domain-specific enforcement.
     \item \textbf{Compositionality} — circuits can be combined or nested, forming higher-level coordination systems.
     \item \textbf{Confidentiality} — with the use of hybrid encryption and zero-knowledge proofs, event payloads can be kept private while still being publicly verifiable against the circuit rules.
+    \item \textbf{Storage Agnosticism} — the logical model is decoupled from the physical storage layer, allowing for flexible deployment on various backends via adapters.
 \end{itemize}
 
 \section{Privacy and Confidentiality}
@@ -154,7 +187,7 @@ The circuit model abstracts the minimal mathematical conditions required for dis
 
 \section{Conclusion}
 
-This paper has introduced the Circuit Model, a formal specification for describing state evolution in distributed systems. By defining clear primitives for state transitions, event structure, and validation, the model provides a robust foundation for building causally consistent and composable systems. The cryptographic linkage of events ensures integrity, while local validation allows for domain-specific logic without global consensus. Future work will explore reference implementations, analyze performance characteristics, and develop advanced privacy-preserving validation techniques using zero-knowledge proofs.
+This paper has introduced the Circuit Model, a formal specification for describing state evolution in distributed systems. By defining clear primitives for state transitions, event structure, and validation, the model provides a robust foundation for building causally consistent and composable systems. The cryptographic linkage of events ensures integrity, while local validation allows for domain-specific logic without global consensus. Future work will explore a library of reference implementations for various adapters, analyze performance characteristics across different backends, and further develop advanced privacy-preserving validation techniques using zero-knowledge proofs.
 
 \begin{thebibliography}{9}
 
