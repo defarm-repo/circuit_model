@@ -1,7 +1,7 @@
-'''
 \documentclass{article}
 
 % Recommended packages for arXiv submissions
+\usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -10,7 +10,7 @@
 \geometry{a4paper, margin=1in}
 
 \title{\textbf{The Circuit Model: A Formal Specification of Events and Items in Distributed Systems}}
-\author{Gabriel B. Rondon \ \href{mailto:me@grondon.com}{me@grondon.com}}
+\author{Gabriel B. Rondon \\ \href{mailto:me@grondon.com}{me@grondon.com}}
 \date{\today}
 
 \begin{document}
@@ -108,29 +108,22 @@ The Circuit Model itself is a purely logical specification, defining the rules o
 \subsection{Separation of Concerns}
 This architecture creates a clean separation of concerns. The circuit is responsible for:
 \begin{itemize}
-    \item Validating event structure and rules ($\mathcal{R}$).
-    \item Executing the state transition function ($\Psi$).
-    \item Creating the cryptographic hashes ($h_i, \Sigma_t, H_C$).
-\end{itemize}
+    \item Validating event structure and rules ($\mathcal{R}$).    \item Executing the state transition function ($\Psi$).    \item Creating the cryptographic hashes ($h_i, \Sigma_t, H_C$).\end{itemize}
 The adapter is responsible for:
 \begin{itemize}
-    \item Persisting a valid event to a specific storage backend.
-    \item Retrieving event histories or item states from that backend.
+    \item Persisting a valid event to a specific storage backend.    \item Retrieving event histories or item states from that backend.
 \end{itemize}
 
 \subsection{Adapter Interface}
 Conceptually, any adapter implements a simple interface, primarily:
 \begin{itemize}
-    \item \texttt{publish(event)}: Takes a locally-validated event and broadcasts it to the network or writes it to the storage layer. It returns a storage-specific identifier (e.g., a transaction hash, an IPFS CID).
-    \item \texttt{resolve(item\_id)}: Fetches the event history for a given item from the storage layer, allowing a node to reconstruct its current state.
+    \item \texttt{publish(event)}: Takes a locally-validated event and broadcasts it to the network or writes it to the storage layer. It returns a storage-specific identifier (e.g., a transaction hash, an IPFS CID).    \item \texttt{resolve(item\_id)}: Fetches the event history for a given item from the storage layer, allowing a node to reconstruct its current state.
 \end{itemize}
 
 \subsection{Example Adapters}
 The flexibility of this model is demonstrated by the variety of possible adapters:
 \begin{itemize}
-    \item \textbf{Blockchain Adapter:} An event can be embedded into a transaction on a public blockchain (e.g., Ethereum). The blockchain's global consensus provides a definitive, ordered log, making fork resolution trivial. This adapter is ideal for high-security applications but may incur higher costs and latency.
-    \item \textbf{IPFS Adapter:} Events can be stored as immutable objects in the InterPlanetary File System (IPFS). The hash-chain linkage of events is preserved by embedding the parent's IPFS Content Identifier (CID) in the child object. This approach is highly decentralized and cost-effective for data availability.
-    \item \textbf{Federated Database Adapter:} For private or consortium-based circuits, an adapter could simply write events to a replicated, high-availability database (e.g., PostgreSQL with streaming replication) managed by a set of trusted parties.
+    \item \textbf{Blockchain Adapter:} An event can be embedded into a transaction on a public blockchain (e.g., Ethereum). The blockchain's global consensus provides a definitive, ordered log, making fork resolution trivial. This adapter is ideal for high-security applications but may incur higher costs and latency.    \item \textbf{IPFS Adapter:} Events can be stored as immutable objects in the InterPlanetary File System (IPFS). The hash-chain linkage of events is preserved by embedding the parent's IPFS Content Identifier (CID) in the child object. This approach is highly decentralized and cost-effective for data availability.    \item \textbf{Federated Database Adapter:} For private or consortium-based circuits, an adapter could simply write events to a replicated, high-availability database (e.g., PostgreSQL with streaming replication) managed by a set of trusted parties.
 \end{itemize}
 The circuit owner's choice of adapter determines the trade-offs between decentralization, security, performance, and cost.
 
@@ -138,12 +131,7 @@ The circuit owner's choice of adapter determines the trade-offs between decentra
 
 The circuit model ensures the following properties:
 \begin{itemize}
-    \item \textbf{Deterministic replay} — given an initial state and event log, any node can reconstruct the same state.
-    \item \textbf{Causal integrity} — all events maintain cryptographic linkage ensuring lineage and immutability.
-    \item \textbf{Local validation} — rules $\mathcal{R}$ define event acceptance at circuit scope, allowing domain-specific enforcement.
-    \item \textbf{Compositionality} — circuits can be combined or nested, forming higher-level coordination systems.
-    \item \textbf{Confidentiality} — with the use of hybrid encryption and zero-knowledge proofs, event payloads can be kept private while still being publicly verifiable against the circuit rules.
-    \item \textbf{Storage Agnosticism} — the logical model is decoupled from the physical storage layer, allowing for flexible deployment on various backends via adapters.
+    \item \textbf{Deterministic replay} — given an initial state and event log, any node can reconstruct the same state.    \item \textbf{Causal integrity} — all events maintain cryptographic linkage ensuring lineage and immutability.    \item \textbf{Local validation} — rules $\mathcal{R}$ define event acceptance at circuit scope, allowing domain-specific enforcement.    \item \textbf{Compositionality} — circuits can be combined or nested, forming higher-level coordination systems.    \item \textbf{Confidentiality} — with the use of hybrid encryption and zero-knowledge proofs, event payloads can be kept private while still being publicly verifiable against the circuit rules.    \item \textbf{Storage Agnosticism} — the logical model is decoupled from the physical storage layer, allowing for flexible deployment on various backends via adapters.
 \end{itemize}
 
 \section{Privacy and Confidentiality}
@@ -163,9 +151,7 @@ The `public` portion contains non-sensitive data required for public processing.
 \subsection{Confidential Transactions with Hybrid Encryption}
 The ciphertext is generated using a standard hybrid encryption scheme.
 \begin{enumerate}
-    \item A fresh, random symmetric key is generated.
-    \item The sensitive payload data is encrypted with this symmetric key.
-    \item The symmetric key is then encrypted with the asymmetric public key of each intended recipient.
+    \item A fresh, random symmetric key is generated.    \item The sensitive payload data is encrypted with this symmetric key.    \item The symmetric key is then encrypted with the asymmetric public key of each intended recipient.
 \end{enumerate}
 To send to a group, the symmetric key is encrypted for each member, and all resulting ciphertexts are included.
 
@@ -203,4 +189,3 @@ Milner, R., “Communicating and Mobile Systems: The $\pi$-Calculus”, Cambridg
 \end{thebibliography}
 
 \end{document}
-'''
